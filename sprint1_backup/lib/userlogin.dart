@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:sprint1_backup/color.dart';
 import 'package:sprint1_backup/mai.dart';
 import 'package:sprint1_backup/userotp.dart';
+import 'package:http/http.dart'as http;
+import 'dart:convert';
 
 // import 'package:qwe/pol/color.dart';
 // import 'package:qwe/pol/log.dart';
@@ -20,7 +22,7 @@ class _userloginState extends State<userlogin> {
   // final ctlName = TextEditingController();
   TextEditingController ctlPhonu = TextEditingController();
   TextEditingController ctlPassword = TextEditingController();
-  TextEditingController ctlforPassword = TextEditingController();
+  // TextEditingController ctlforPassword = TextEditingController();
 
   final bmc = GlobalKey<FormState>();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();///keybord terger
@@ -42,6 +44,31 @@ class _userloginState extends State<userlogin> {
       FocusScope.of(context).requestFocus(_focusNode);
     }
   }///key
+  var sample ={};
+  loginuser()async{
+    final response = await http.post(Uri.parse("http://92.205.109.210:8028/user/login"),
+      headers: {
+      "content-type" : "application/json"
+      },
+      body: jsonEncode({
+        "phno":ctlPhonu.text,
+        "password":ctlPassword.text
+        })
+    );
+    print(response.statusCode);
+    if(response.statusCode==200||response.statusCode==201){
+      setState(() {
+        sample = jsonDecode(response.body);
+        print(sample);
+          Navigator.push(context, MaterialPageRoute(builder: (context)=>dym()));
+
+
+
+      });
+    }
+
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -65,7 +92,7 @@ class _userloginState extends State<userlogin> {
             // ),
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Text("To get started, first enter your phone",style: TextStyle(fontWeight: FontWeight.w800,fontSize: 25,color: Colors.white),),
+              child: Text("To get started, first enter your phone number",style: TextStyle(fontWeight: FontWeight.w800,fontSize: 25,color: Colors.white),),
             ),
             Form(
               key: bmc,
@@ -85,7 +112,7 @@ class _userloginState extends State<userlogin> {
                           validator: (input)
 
                           {
-                            if( !RegExp( r"^(\+91\s)?[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$").hasMatch(input!))
+                            if( !RegExp( r"^(\+?\d{1,4}[\s-])?(?!0+\s+,?$)\d{10}\s*,?$").hasMatch(input!))
                             {
                               return"  Please Enter a valid phone number";
                             }
@@ -95,7 +122,8 @@ class _userloginState extends State<userlogin> {
                           style: TextStyle(color: Colors.black),
                           decoration: InputDecoration(
                             label: Text("Phone number ",style: TextStyle(color: Colors.black),),
-                            hintText: "Phone number",
+                            // hintText: "Phone number",
+                            prefix: Text("+91",style: TextStyle(fontSize: 16),),
                             border: OutlineInputBorder(),
                             hintStyle: TextStyle(fontSize: 20.0, color: hin),
                           ),
@@ -119,7 +147,7 @@ class _userloginState extends State<userlogin> {
                                   suffixIcon: IconButton(
                                     icon: Icon(
                                       // Based on passwordVisible state choose the icon
-                                      signIsPasswordVisible1
+                                      signIsPasswordVisible
                                           ? Icons.visibility
                                           : Icons.visibility_off,
                                       color: Colors.black,
@@ -134,7 +162,7 @@ class _userloginState extends State<userlogin> {
                                 ),
                                 validator: (input)
                                 {
-                                  if(!RegExp(r"^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{6,16}$" ).hasMatch(input!) )
+                                  if(!RegExp(r"^\d{6}$" ).hasMatch(input!) )
                                   {
                                     return "Please enter a valid Password!";
                                   }
@@ -166,14 +194,9 @@ class _userloginState extends State<userlogin> {
                         backgroundColor: sinupbutton
                     ),
                     onPressed: (){
-                      setState(() {
-                        if(bmc.currentState!.validate())
-                        {
-                          SnackBar(content: Text("Enter the valid values"),);
-                          Navigator.push(context, MaterialPageRoute(builder: (context)=>dym()));
-                        }
-                      });
-
+                      if(bmc.currentState!.validate()){
+                      }
+                      loginuser();
                     }, child: Text("Login",style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold),)),
               ),
             ),
@@ -182,6 +205,7 @@ class _userloginState extends State<userlogin> {
             //   color: Colors.white,
             // ),
             TextButton(onPressed: (){
+              // loginuser();
 
               Navigator.push(context, MaterialPageRoute(builder: (context)=>userotp()));
 

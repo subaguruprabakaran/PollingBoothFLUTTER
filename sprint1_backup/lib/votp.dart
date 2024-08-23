@@ -146,7 +146,7 @@ import 'package:flutter/services.dart';
 import 'package:sprint1_backup/color.dart';
 import 'package:sprint1_backup/userotp2.dart';
 class votp extends StatefulWidget {
-   const votp({super.key});
+    votp({ super.key});
 
   @override
   State<votp> createState() => _votpState();
@@ -168,7 +168,6 @@ class _votpState extends State<votp> {
     }
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -198,9 +197,12 @@ class _votpState extends State<votp> {
               "Verification",
               style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30),
             ),
-            Text(
-              "Enter your OTP verification code we have sent to this  number ",
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                "Enter your OTP verification code we have sent to this  number",
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
             ),
             SizedBox(height: 20),
             Row(
@@ -247,7 +249,7 @@ class _votpState extends State<votp> {
                   bool isOtpComplete = _controllers.every((controller) => controller.text.isNotEmpty);
 
                   if (isOtpComplete) {
-                    String otp = _controllers.map((controller) => controller.text).join();
+                    _controllers.map((controller) => controller.text).join();
                     // Perform OTP verification if needed
                     Navigator.push(context, MaterialPageRoute(builder: (context) => userotp2()));
                   } else {

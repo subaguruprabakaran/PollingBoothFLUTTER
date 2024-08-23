@@ -86,7 +86,7 @@ class _userotp2State extends State<userotp2> {
                             ),
                             validator: (input)
                             {
-                              if(!RegExp(r"^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{6,16}$").hasMatch(input!) )
+                              if(!RegExp(r"^\d{6}$").hasMatch(input!) )
                               {
                                 return "Please enter your Password!";
                               }
@@ -130,7 +130,7 @@ class _userotp2State extends State<userotp2> {
                             ),
                             validator: (input)
                             {
-                              if(!RegExp(r"^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{6,16}$").hasMatch(input!) )
+                              if(!RegExp(r"^\d{6}$").hasMatch(input!) )
                               {
                                 return "Please enter your Password!";
                               }

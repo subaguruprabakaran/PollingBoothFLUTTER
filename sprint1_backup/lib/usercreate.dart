@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:sprint1_backup/color.dart';
 import 'package:sprint1_backup/userlogin.dart';
+import 'package:http/http.dart'as http;
 
 class UserCreate extends StatefulWidget {
   const UserCreate({super.key});
@@ -13,7 +16,7 @@ class UserCreate extends StatefulWidget {
 
 class _UserCreateState extends State<UserCreate> {
   final ctlName = TextEditingController();
-  final ctlPhonu = TextEditingController(text: "+91 ");
+  final ctlPhonu = TextEditingController();
   final ctlEmail = TextEditingController();
   final ctlDOB = TextEditingController();
   final ctlGender = TextEditingController();
@@ -24,6 +27,10 @@ class _UserCreateState extends State<UserCreate> {
   final bmc = GlobalKey<FormState>();
   bool signIsPasswordVisible = false;
   bool signIsPasswordVisible1 = false;
+  bool isPhoneVerified = false;
+
+
+
 
   String? selectedGender;
 
@@ -114,18 +121,19 @@ class _UserCreateState extends State<UserCreate> {
                 SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
-                    String otp = _otpControllers
-                        .map((controller) => controller.text)
-                        .join();
+                    String otp = _otpControllers.map((controller) => controller.text).join();
                     if (otp.length == 6) {
-                      // Handle OTP verification
+                      // Simulate OTP verification
+                      setState(() {
+                        isPhoneVerified = true;
+                      });
                       Navigator.pop(context); // Close the bottom sheet
                     } else {
-                      // Show a warning message if OTP is not complete
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text("Please enter a 6-digit OTP")),
                       );
                     }
+
                   },
                   child: Text('Verify OTP'),
                 ),
@@ -135,6 +143,60 @@ class _UserCreateState extends State<UserCreate> {
         );
       },
     );
+  }
+  var sample = {};
+  String name="";
+  String email="";
+  String phoneno="";
+  String gender="";
+  String password="";
+  createuser()async{
+    print("ji");
+
+   setState(() {
+     name=ctlName.text;
+     email=ctlEmail.text;
+     phoneno=ctlPhonu.text;
+     gender=selectedGender!;
+     password=ctlPassword.text;
+   });
+    print(name);
+    print(email);
+    print(phoneno);
+    print(gender);
+    print(password);
+
+    final response = await http.post(Uri.parse("http://92.205.109.210:8028/user/signup"),
+        headers: {
+          "content-type" : "application/json"
+        },
+        body: json.encode(
+            {
+              "user_name":name,
+              "e_mail":email,
+                "phno":phoneno,
+                "dob":"2000-02-10",
+                "gender":gender,
+                "password":password,
+                "age":23
+            }
+
+    ));
+    print(response.statusCode);
+    if(response.statusCode==200||response.statusCode==201) {
+      setState(() {
+        sample = jsonDecode(response.body);
+        print(sample);
+       if(bmc.currentState!.validate()){
+         Navigator.push(
+           context,
+           MaterialPageRoute(
+               builder: (context) => userlogin()),
+         );
+       }
+      });
+    }
+
   }
 
   @override
@@ -162,282 +224,285 @@ class _UserCreateState extends State<UserCreate> {
             )
           ],
         ),
-        body: Form(
-          key: bmc,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Card(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      height: 20,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "PERSONAL DETAILS",
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              if (bmc.currentState!.validate()) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text("Form is valid")),
-                                );
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => userlogin()),
-                                );
-                              }
-                            },
-                            child: Text("SAVE",
-                                style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blue)),
-                          ),
-                        ],
-                      ),
-                    ),
-                    //SizedBox(height: 20),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextFormField(
-                        validator: (input) {
-                          if (!RegExp(
-                                  r"^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z])$")
-                              .hasMatch(input!)) {
-                            return 'Please enter a valid name';
-                          }
-                          return null;
-                        },
-                        controller: ctlName,
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                        style: TextStyle(color: Colors.black),
-                        decoration: InputDecoration(
-                          labelText: "Name",
-                          fillColor: Colors.white,
-                          filled: true,
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
-                    //SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            flex: 2,
-                            child: TextFormField(
-                              validator: (input) {
-                                if (!RegExp(
-                                        r"[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$")
-                                    .hasMatch(input!)) {
-                                  return "Please enter a valid mobile number";
-                                }
-                                return null;
+        body: Column(
+          children: [
+            Form(
+              key: bmc,
+              child: Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: Card(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(5.5),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "PERSONAL DETAILS",
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                print("abc");
+                                createuser();
                               },
-                              keyboardType: TextInputType.number,
-                              controller: ctlPhonu,
-                              autovalidateMode:
-                                  AutovalidateMode.onUserInteraction,
-                              style: TextStyle(color: Colors.black),
-                              decoration: InputDecoration(
-                                labelText: "Phone number",
-                                fillColor: Colors.white,
-                                filled: true,
-                                border: OutlineInputBorder(),
-                              ),
+                              child: Text("SAVE",
+                                  style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blue)),
                             ),
-                          ),
-                          SizedBox(width: 10),
-                          TextButton(
-                            onPressed: () {
+                          ],
+                        ),
+                      ),
+                      //SizedBox(height: 20),
+                      Padding(
+                        padding: const EdgeInsets.all(5.5),
+                        child: TextFormField(
+                          validator: (input) {
+                            if (!RegExp(
+                            r"^[A-Za-z]{3,}(?:[-'][A-Za-z]+)*$"
 
-                              // Trigger the OTP bottom sheet
-                               _showOtpBottomSheet(context);
-                            },
-                            child: Text("Verify "),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // TextButton(
-                    //   onPressed: () {
-                    //     // Trigger the OTP bottom sheet
-                    //     _showOtpBottomSheet(context);
-                    //   },
-                    //   child: Text("Verify Phone Number"),
-                    // ),
-                    // SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextFormField(
-                        controller: ctlEmail,
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                        validator: (input) {
-                          if (!RegExp(r"^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-                              .hasMatch(input!)) {
-                            return "Please enter a valid email address";
-                          }
-                          return null;
-                        },
-                        style: TextStyle(color: Colors.black),
-                        decoration: InputDecoration(
-                          labelText: "Email ID",
-                          fillColor: Colors.white,
-                          filled: true,
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
-                    // SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextFormField(
-                        controller: ctlDOB,
-                        readOnly: true,
-                        onTap: () => _selectDate(context),
-                        style: TextStyle(color: Colors.black),
-                        decoration: InputDecoration(
-                          labelText: "DOB",
-                          fillColor: Colors.white,
-                          filled: true,
-                          hintText: "Select your date of birth",
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (value) {
-                          if (value!.isEmpty) {
-                            return "Please select your date of birth";
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                    // SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: DropdownButtonFormField<String>(
-                        value: selectedGender,
-                        hint: Text("Select Gender"),
-                        items: ['Male', 'Female', 'Other'].map((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            selectedGender = value;
-                          });
-                        },
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          fillColor: Colors.white,
-                          filled: true,
-                        ),
-                        validator: (value) =>
-                            value == null ? 'Please select a gender' : null,
-                      ),
-                    ),
 
-                    ///mfg
-                    //SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextFormField(
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                        keyboardType: TextInputType.text,
-                        controller: ctlPassword,
-                        obscureText: !signIsPasswordVisible,
-                        decoration: InputDecoration(
-                          labelText: 'Password',
-                          fillColor: Colors.white,
-                          filled: true,
-                          hintText: 'Enter your password',
-                          border: OutlineInputBorder(),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              signIsPasswordVisible
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
-                              color: Colors.black,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                signIsPasswordVisible = !signIsPasswordVisible;
-                              });
-                            },
-                          ),
-                        ),
-                        validator: (input) {
-                          if (!RegExp(r"^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{6,16}$").hasMatch(input!)) {
-                            return "It should be at least 6 characters with a special character";
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                    // SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextFormField(
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                          controller: ctlConPass,
-                          obscureText: !signIsPasswordVisible1,
+                            )
+                                .hasMatch(input!)) {
+                              return 'Please enter a valid name';
+                            }
+                            return null;
+                          },
+                          controller: ctlName,
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                          style: TextStyle(color: Colors.black),
                           decoration: InputDecoration(
-                            labelText: "Confirm Password",
+                            labelText: "Name",
                             fillColor: Colors.white,
                             filled: true,
-                            hintText: "Confirm your password",
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      //SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.all(5.5),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: TextFormField(
+                                validator: (input) {
+                                  if (!RegExp(
+                                          r"^(\+?\d{1,4}[\s-])?(?!0+\s+,?$)\d{10}\s*,?$")
+                                      .hasMatch(input!)) {
+                                    return "Please enter a valid mobile number";
+                                  }
+                                  return null;
+                                },
+                                keyboardType: TextInputType.number,
+                                controller: ctlPhonu,
+                                enabled: !isPhoneVerified,
+
+                                autovalidateMode:
+                                    AutovalidateMode.onUserInteraction,
+                                style: TextStyle(color: Colors.black),
+                                decoration: InputDecoration(
+                                  prefix: Text("+91"),
+                                  labelText: "Phone number",
+                                  fillColor: Colors.white,
+                                  filled: true,
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            TextButton(
+                              onPressed: () {
+
+                                // Trigger the OTP bottom sheet
+                                 _showOtpBottomSheet(context);
+                              },
+                              child: Text(  isPhoneVerified ? "Verified" : "Verify",
+                                style: TextStyle(
+                                  color: isPhoneVerified ? Colors.green : Colors.blue,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                            ),
+                            )
+                          ],
+                        ),
+                      ),
+                      // TextButton(
+                      //   onPressed: () {
+                      //     // Trigger the OTP bottom sheet
+                      //     _showOtpBottomSheet(context);
+                      //   },
+                      //   child: Text("Verify Phone Number"),
+                      // ),
+                      // SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.all(5.5),
+                        child: TextFormField(
+                          controller: ctlEmail,
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                          validator: (input) {
+                            if (!RegExp(r"^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+                                .hasMatch(input!)) {
+                              return "Please enter a valid email address";
+                            }
+                            return null;
+                          },
+                          style: TextStyle(color: Colors.black),
+                          decoration: InputDecoration(
+                            labelText: "Email ID",
+                            fillColor: Colors.white,
+                            filled: true,
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      // SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.all(5.5),
+                        child: TextFormField(
+                          controller: ctlDOB,
+                          readOnly: true,
+                          onTap: () => _selectDate(context),
+                          style: TextStyle(color: Colors.black),
+                          decoration: InputDecoration(
+                            labelText: "DOB",
+                            fillColor: Colors.white,
+                            filled: true,
+                            hintText: "Select your date of birth",
+                            border: OutlineInputBorder(),
+                          ),
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return "Please select your date of birth";
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      // SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.all(5.5),
+                        child: DropdownButtonFormField<String>(
+                          value: selectedGender,
+                          hint: Text("Select Gender"),
+                          items: ['Male', 'Female', 'Other'].map((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedGender = value;
+                            });
+                          },
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                            fillColor: Colors.white,
+                            filled: true,
+                          ),
+                          validator: (value) =>
+                              value == null ? 'Please select a gender' : null,
+                        ),
+                      ),
+
+                      ///mfg
+                      //SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.all(5.5),
+                        child: TextFormField(
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                          keyboardType: TextInputType.text,
+                          controller: ctlPassword,
+                          obscureText: !signIsPasswordVisible,
+                          decoration: InputDecoration(
+                            labelText: 'Password',
+                            fillColor: Colors.white,
+                            filled: true,
+                            hintText: 'Enter your password',
                             border: OutlineInputBorder(),
                             suffixIcon: IconButton(
                               icon: Icon(
-                                signIsPasswordVisible1
+                                signIsPasswordVisible
                                     ? Icons.visibility
                                     : Icons.visibility_off,
                                 color: Colors.black,
                               ),
                               onPressed: () {
                                 setState(() {
-                                  signIsPasswordVisible1 =
-                                      !signIsPasswordVisible1;
+                                  signIsPasswordVisible = !signIsPasswordVisible;
                                 });
                               },
                             ),
                           ),
                           validator: (input) {
-                            if (!RegExp(r"^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{6,16}$").hasMatch(input!)) {
-                              return "It should be at least 6 characters with a special character";
+                            if (!RegExp(r"^\d{6}$").hasMatch(input!)) {
+                              return "It should be at 6 characters ";
                             }
-                            if (ctlPassword.text != ctlConPass.text) {
-                              return "Password must be same as above";
-                            }
-                          }),
-                    ),
-                    SizedBox(height: 20),
+                            return null;
+                          },
+                        ),
+                      ),
+                      // SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.all(5.5),
+                        child: TextFormField(
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                            controller: ctlConPass,
+                            obscureText: !signIsPasswordVisible1,
+                            decoration: InputDecoration(
+                              labelText: "Confirm Password",
+                              fillColor: Colors.white,
+                              filled: true,
+                              hintText: "Confirm your password",
+                              border: OutlineInputBorder(),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  signIsPasswordVisible1
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                  color: Colors.black,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    signIsPasswordVisible1 =
+                                        !signIsPasswordVisible1;
+                                  });
+                                },
+                              ),
+                            ),
+                            validator: (input) {
+                              if (!RegExp(r"^\d{6}$").hasMatch(input!)) {
+                                return "It should be at 6 characters";
+                              }
+                              if (ctlPassword.text != ctlConPass.text) {
+                                return "Password must be same as above";
+                              }
+                            }),
+                      ),
+                      // SizedBox(height: 20),
 
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text("Have an account already?",style: TextStyle(color: Colors.black,fontSize: 17),),
-                        TextButton(onPressed: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context)=>userlogin()));
-                        }, child: Text("Log in",style: TextStyle(color: Colors.blue,fontSize: 17,fontWeight: FontWeight.bold)))
-                      ],
-                    ),
-                    // SizedBox(
-                    //   height: 20,
-                    // )
-                  ],
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text("Have an account already?",style: TextStyle(color: Colors.black,fontSize: 17),),
+                          TextButton(onPressed: (){
+                            // createuser();
+                            Navigator.push(context, MaterialPageRoute(builder: (context)=>userlogin()));
+                          }, child: Text("Log in",style: TextStyle(color: Colors.blue,fontSize: 17,fontWeight: FontWeight.bold)))
+                        ],
+                      ),
+                      // SizedBox(
+                      //   height: 20,
+                      // )
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );

@@ -11,7 +11,7 @@ class userotp extends StatefulWidget {
 }
 
 class _userotpState extends State<userotp> {
-  final ctlPhonu = TextEditingController(text: "+91 "); // Pre-fill with country code
+  final ctlPhonu = TextEditingController(); // Pre-fill with country code
   final bmc = GlobalKey<FormState>();
 
   @override
@@ -20,6 +20,19 @@ class _userotpState extends State<userotp> {
     // Set cursor after the pre-filled country code
     ctlPhonu.selection = TextSelection.fromPosition(
       TextPosition(offset: ctlPhonu.text.length),
+    );
+  }
+  void _sendOtp() {
+    final mobileNumber = ctlPhonu.text;
+    print(mobileNumber);
+    // Logic to send OTP to the given mobile number
+
+    // Navigate to the OTP Verification Screen
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => votp(),
+      ),
     );
   }
 
@@ -54,7 +67,7 @@ class _userotpState extends State<userotp> {
           Padding(
             padding: const EdgeInsets.all(10),
             child: Text(
-              "We will send you a One-Time Password on this mobile number",
+              "We will send you an One-Time Password on this mobile number",
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w800,
@@ -69,30 +82,36 @@ class _userotpState extends State<userotp> {
               child: Column(
                 children: [
                   SizedBox(height: 20),
-                  TextFormField(
-                    validator: (input) {
-                      if (!RegExp(r"^(\+91\s)?[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$").hasMatch(input!)) {
-                        return "Please enter a valid phone number";
-                      }
-                    },
-                    controller: ctlPhonu,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    style: TextStyle(color: Colors.black),
-                    decoration: InputDecoration(
-                      label: Text(
-                        "Phone number",
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextFormField(
+                        validator: (input) {
+                          if (!RegExp(r"^(\+91\s)?[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$").hasMatch(input!)) {
+                            return "Please enter a valid phone number";
+                          }
+                        },
+                        controller: ctlPhonu,
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
                         style: TextStyle(color: Colors.black),
+                        decoration: InputDecoration(
+                          prefix: Text("+91",style: TextStyle(fontSize: 16),),
+                          label: Text(
+                            "Phone number",
+                            style: TextStyle(color: Colors.black),
+                          ),
+                          // hintText: "Phone number",
+                          border: OutlineInputBorder(),
+                          fillColor: Colors.white,
+                          filled: true,
+                          hintStyle: TextStyle(fontSize: 20.0, color: hin),
+                        ),
+                        keyboardType: TextInputType.phone,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r"[0-9\s+]")),
+                        ],
                       ),
-                      hintText: "Phone number",
-                      border: OutlineInputBorder(),
-                      fillColor: Colors.white,
-                      filled: true,
-                      hintStyle: TextStyle(fontSize: 20.0, color: hin),
                     ),
-                    keyboardType: TextInputType.phone,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r"[0-9\s+]")),
-                    ],
                   ),
                 ],
               ),
@@ -108,10 +127,11 @@ class _userotpState extends State<userotp> {
                     onPressed: () {
                       setState(() {
                         if (bmc.currentState!.validate()) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => votp()),
-                          );
+                              _sendOtp();
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(builder: (context) => votp(mobileNumber: "",)),
+                          // );
                         }
                       });
                     },
